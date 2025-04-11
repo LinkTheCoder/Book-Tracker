@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User List</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .user-list {
+      list-style-type: none;
+      padding: 0;
+    }
+    .user-item {
+      padding: 8px;
+      border: 1px solid #ddd;
+      margin-bottom: 10px;
+    }
+    .user-name {
+      font-weight: bold;
+    }
+    .user-email {
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>User List</h1>
+  <ul id="userList" class="user-list"></ul>
+
+  <script>
+    // Fetch user data from the server (from /api/users)
+    fetch('/api/users')
+      .then(response => response.json())
+      .then(data => {
+        const userListElement = document.getElementById('userList');
+        
+        // Clear the list before rendering new data
+        userListElement.innerHTML = '';
+
+        // Loop through each user and create a list item
+        data.forEach(user => {
+          const li = document.createElement('li');
+          li.className = 'user-item';
+
+          // Create the name element
+          const name = document.createElement('div');
+          name.className = 'user-name';
+          name.textContent = `Name: ${user.name}`;
+          
+          // Create the email element
+          const email = document.createElement('div');
+          email.className = 'user-email';
+          email.textContent = `Email: ${user.email}`;
+
+          // Append name and email to the list item
+          li.appendChild(name);
+          li.appendChild(email);
+
+          // Append the list item to the user list
+          userListElement.appendChild(li);
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching users:', error);
+      });
+  </script>
+</body>
+</html>
