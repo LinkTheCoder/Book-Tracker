@@ -3,68 +3,139 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User List</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-    }
-    .user-list {
-      list-style-type: none;
-      padding: 0;
-    }
-    .user-item {
-      padding: 8px;
-      border: 1px solid #ddd;
-      margin-bottom: 10px;
-    }
-    .user-name {
-      font-weight: bold;
-    }
-    .user-email {
-      color: #555;
-    }
-  </style>
+  <title>Book Tracker</title>
+  <link rel="stylesheet" href="styles.css">  <!-- Link to external CSS -->
 </head>
 <body>
-  <h1>User List</h1>
-  <ul id="userList" class="user-list"></ul>
+  <h1>Book Tracker</h1>
+
+  <!-- Form to add or update a book -->
+  <h2 id="formTitle">Add a New Book</h2>
+  <form id="bookForm">
+    <div class="form-group">
+      <label for="title">Book Title:</label>
+      <input type="text" id="title" required>
+    </div>
+    <div class="form-group">
+      <label for="author">Author:</label>
+      <input type="text" id="author" required>
+    </div>
+    <div class="form-group">
+      <label for="status">Status:</label>
+      <select id="status" required>
+        <option value="reading">Reading</option>
+        <option value="read">Read</option>
+        <option value="want to read">Want to Read</option>
+      </select>
+    </div>
+    <button type="submit" id="submitButton">Add</button>
+  </form>
+
+  <!-- List to display books -->
+  <h2>Book List</h2>
+  <ul id="bookList" class="book-list"></ul>
 
   <script>
-    // Fetch user data from the server (from /api/users)
-    fetch('/api/users')
-      .then(response => response.json())
-      .then(data => {
-        const userListElement = document.getElementById('userList');
-        
-        // Clear the list before rendering new data
-        userListElement.innerHTML = '';
+    let editingBookId = null;
 
-        // Loop through each user and create a list item
-        data.forEach(user => {
-          const li = document.createElement('li');
-          li.className = 'user-item';
+    function loadBooks() {
+      fetch('/api/books')
+        .then(response => response.json())
+        .then(data => {
+          const bookListElement = document.getElementById('bookList');
+          bookListElement.innerHTML = '';
 
-          // Create the name element
-          const name = document.createElement('div');
-          name.className = 'user-name';
-          name.textContent = `Name: ${user.name}`;
-          
-          // Create the email element
-          const email = document.createElement('div');
-          email.className = 'user-email';
-          email.textContent = `Email: ${user.email}`;
+          data.forEach(book => {
+            const li = document.createElement('li');
+            li.className = 'book-item';
 
-          // Append name and email to the list item
-          li.appendChild(name);
-          li.appendChild(email);
+            const title = document.createElement('div');
+            title.className = 'book-title';
+            title.textContent = `Title: ${book.title}`;
 
-          // Append the list item to the user list
-          userListElement.appendChild(li);
+            const author = document.createElement('div');
+            author.className = 'book-author';
+            author.textContent = `Author: ${book.author}`;
+
+            const status = document.createElement('div');
+            status.className = 'book-status';
+            status.textContent = `Status: ${book.status}`;
+
+            const buttonGroup = document.createElement('div');
+            buttonGroup.className = 'button-group';
+
+            const editButton = document.createElement('button');
+            editButton.textContent = 'Edit';
+            editButton.onclick = () => editBook(book);
+
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.onclick = () => deleteBook(book.id);
+
+            buttonGroup.appendChild(editButton);
+            buttonGroup.appendChild(deleteButton);
+
+            li.appendChild(title);
+            li.appendChild(author);
+            li.appendChild(status);
+            li.appendChild(buttonGroup);
+
+            bookListElement.appendChild(li);
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching books:', error);
         });
-      })
-      .catch(error => {
-        console.error('Error fetching users:', error);
-      });
+    }
+
+    document.getElementById('bookForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const title = document.getElementById('title').value;
+      const author = document.getElementById('author').value;
+      const status = document.getElementById('status').value;
+
+      if (editingBookId) {
+        await fetch(`/api/books/${editingBookId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, author, status })
+        });
+      } else {
+        await fetch('/api/books', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, author, status })
+        });
+      }
+
+      loadBooks();
+      document.getElementById('bookForm').reset();
+      document.getElementById('formTitle').textContent = 'Add a New Book';
+      document.getElementById('submitButton').textContent = 'Add';
+      editingBookId = null;
+    });
+
+    function editBook(book) {
+      document.getElementById('formTitle').textContent = 'Edit Book';
+      document.getElementById('title').value = book.title;
+      document.getElementById('author').value = book.author;
+      document.getElementById('status').value = book.status;
+      document.getElementById('submitButton').textContent = 'Update';
+      editingBookId = book.id;
+    }
+
+    function deleteBook(id) {
+      if (confirm('Are you sure you want to delete this book?')) {
+        fetch(`/api/books/${id}`, {
+          method: 'DELETE'
+        })
+        .then(() => loadBooks())
+        .catch(error => console.error('Error deleting book:', error));
+      }
+    }
+
+    loadBooks();
   </script>
 </body>
 </html>

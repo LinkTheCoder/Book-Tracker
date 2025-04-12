@@ -1,0 +1,35 @@
+body {
+    font-family: Arial, sans-serif;
+  }
+  
+  .book-list {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .book-item {
+    padding: 8px;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+  }
+  
+  .book-title {
+    font-weight: bold;
+  }
+  
+  .book-author {
+    color: #555;
+  }
+  
+  .book-status {
+    font-style: italic;
+    color: #777;
+  }
+  
+  .form-group {
+    margin-bottom: 10px;
+  }
+  
+  .button-group button {
+    margin-right: 8px;
+  }

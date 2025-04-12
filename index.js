@@ -3,9 +3,12 @@ const express = require('express');
 const mysql = require('mysql2');
 const app = express();
 const port = 3000;
+const cors = require('cors');
 
-// Serve static files (e.g., HTML, CSS, JS) from the "public" directory
+// Middleware
+app.use(express.json());
 app.use(express.static('public'));
+app.use(cors());
 
 // Create a connection to the database
 const db = mysql.createConnection({
@@ -24,19 +27,62 @@ db.connect(err => {
   console.log('Connected to the database');
 });
 
-// Serve the index.html file when accessing the root route
+// Serve the index.html file
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');  // Make sure the file path is correct
+  res.sendFile(__dirname + '/public/index.html');
 });
 
-// Set up an API route to fetch data from the database
-app.get('/api/users', (req, res) => {
-  db.query('SELECT * FROM users', (err, results) => {
+// Get all books
+app.get('/api/books', (req, res) => {
+  db.query('SELECT * FROM books', (err, results) => {
     if (err) {
       console.error('Error fetching data:', err);
       res.status(500).send('Error fetching data');
     } else {
-      res.json(results);  // Send results as JSON to the front-end
+      res.json(results);
+    }
+  });
+});
+
+// Add a new book
+app.post('/api/books', (req, res) => {
+  const { title, author, status } = req.body;
+  const query = 'INSERT INTO books (title, author, status) VALUES (?, ?, ?)';
+  db.query(query, [title, author, status], (err, result) => {
+    if (err) {
+      console.error('Error adding book:', err);
+      res.status(500).send('Error adding book');
+    } else {
+      res.json({ message: 'Book added successfully' });
+    }
+  });
+});
+
+// Update a book
+app.put('/api/books/:id', (req, res) => {
+  const { id } = req.params;
+  const { title, author, status } = req.body;
+  const query = 'UPDATE books SET title = ?, author = ?, status = ? WHERE id = ?';
+  db.query(query, [title, author, status, id], (err, result) => {
+    if (err) {
+      console.error('Error updating book:', err);
+      res.status(500).send('Error updating book');
+    } else {
+      res.json({ message: 'Book updated successfully' });
+    }
+  });
+});
+
+// ❗️DELETE a book
+app.delete('/api/books/:id', (req, res) => {
+  const { id } = req.params;
+  const query = 'DELETE FROM books WHERE id = ?';
+  db.query(query, [id], (err, result) => {
+    if (err) {
+      console.error('Error deleting book:', err);
+      res.status(500).send('Error deleting book');
+    } else {
+      res.json({ message: 'Book deleted successfully' });
     }
   });
 });
