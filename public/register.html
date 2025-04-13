@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <link rel="stylesheet" href="styles.css"> <!-- Link to external CSS -->
+</head>
+<body>
+  <h1>Register</h1>
+  <form id="registerForm">
+    <div class="form-group">
+      <label for="registerUsername">Username:</label>
+      <input type="text" id="registerUsername" required>
+    </div>
+    <div class="form-group">
+      <label for="registerPassword">Password:</label>
+      <input type="password" id="registerPassword" required>
+    </div>
+    <button type="submit">Register</button>
+  </form>
+  <a href="/">Back to Login</a>
+
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const username = document.getElementById('registerUsername').value;
+      const password = document.getElementById('registerPassword').value;
+
+      try {
+        const response = await fetch('/api/register', { // Ensure this URL matches the backend route
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (response.ok) {
+          alert('Registration successful. You can now log in.');
+          window.location.href = '/';
+        } else {
+          const errorMessage = await response.text();
+          alert(`Registration failed: ${errorMessage}`);
+        }
+      } catch (error) {
+        console.error('Error during registration:', error);
+      }
+    });
+  </script>
+</body>
+</html>
